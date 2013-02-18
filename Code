@@ -1,0 +1,270 @@
+
+#include <tiny2313.h>
+
+// I2C Bus functions
+#asm
+   .equ __i2c_port=0x1B ;PORTA
+   .equ __sda_bit=1
+   .equ __scl_bit=0
+#endasm
+#include <i2c.h>
+
+// DS1307 Real Time Clock functions
+#include <ds1307.h>
+
+// 1 Wire Bus functions
+//#asm
+ //  .equ __w1_port=0x12 ;PORTD
+ //  .equ __w1_bit=6
+//#endasm
+//#include <1wire.h>
+
+// DS1820 Temperature Sensor functions
+//#include <ds18b20.h>
+
+#include <delay.h>
+
+
+
+int t1,t2,t3,t4;
+int t,h,r,f,j;
+int e1,e2,e3,e;
+unsigned char hour,min,sek;
+// Timer1 output compare A interrupt service routine
+interrupt [TIM1_COMPA] void timer1_compa_isr(void)
+{
+TCNT1H=0x00;
+TCNT1L=0x00;
+// Place your code here
+  h++;
+  if(h==2){h=0;};
+ rtc_get_time(&hour,&min,&sek);     
+  t1=hour/10;
+          t2=hour%10;  
+           t3=min/10;
+          t4=min%10;        
+         
+          if (j==1) { f++;};   
+            
+          
+    if(f<40){    if(f>9){ if(f%2==1){t1=t2=11;} if(PIND.0==0){hour++;   if (hour>23) {hour=00;  }; rtc_set_time(hour,00,00); }}}
+     
+     
+      if(f<110){     if(f>40){if(f%2==1){t3=t4=11;} if(PIND.0==0){min++;   if (min>59) {min=00;  }rtc_set_time(hour,min,00); }}}
+      
+        
+      
+      
+        if (f>107) {j=0; f=0;  };   
+        if (f==7) {j=0; f=0;  };   
+       
+      e++;
+      if (e>100) {e=90;  };
+
+//};
+
+         
+}
+
+// Declare your global variables here
+
+void main(void)
+{
+// Declare your local variables here
+
+// Crystal Oscillator division factor: 1
+#pragma optsize-
+CLKPR=0x80;
+CLKPR=0x00;
+#ifdef _OPTIMIZE_SIZE_
+#pragma optsize+
+#endif
+
+// Input/Output Ports initialization
+// Port A initialization
+// Func2=In Func1=In Func0=In 
+// State2=T State1=T State0=T 
+PORTA=0x00;
+DDRA=0x00;
+
+// Port B initialization
+// Func7=Out Func6=Out Func5=Out Func4=Out Func3=Out Func2=Out Func1=Out Func0=Out 
+// State7=0 State6=0 State5=0 State4=0 State3=0 State2=0 State1=0 State0=0 
+PORTB=0x00;
+DDRB=0xFF;
+
+// Port D initialization
+// Func6=In Func5=Out Func4=Out Func3=Out Func2=Out Func1=In Func0=In 
+// State6=T State5=0 State4=0 State3=0 State2=0 State1=P State0=T 
+PORTD=0x02;
+DDRD=0x3C;
+
+// Timer/Counter 0 initialization
+// Clock source: System Clock
+// Clock value: Timer 0 Stopped
+// Mode: Normal top=FFh
+// OC0A output: Disconnected
+// OC0B output: Disconnected
+TCCR0A=0x00;
+TCCR0B=0x00;
+TCNT0=0x00;
+OCR0A=0x00;
+OCR0B=0x00;
+
+// Timer/Counter 1 initialization
+// Clock source: System Clock
+// Clock value: 7,813 kHz
+// Mode: Normal top=FFFFh
+// OC1A output: Discon.
+// OC1B output: Discon.
+// Noise Canceler: Off
+// Input Capture on Falling Edge
+// Timer1 Overflow Interrupt: Off
+// Input Capture Interrupt: Off
+// Compare A Match Interrupt: On
+// Compare B Match Interrupt: Off
+TCCR1A=0x00;
+TCCR1B=0x05;
+TCNT1H=0x00;
+TCNT1L=0x00;
+ICR1H=0x00;
+ICR1L=0x00;
+OCR1AH=0x0F;
+OCR1AL=0x42;
+OCR1BH=0x00;
+OCR1BL=0x00;
+
+// External Interrupt(s) initialization
+// INT0: Off
+// INT1: Off
+// Interrupt on any change on pins PCINT0-7: Off
+GIMSK=0x00;
+MCUCR=0x00;
+
+// Timer(s)/Counter(s) Interrupt(s) initialization
+TIMSK=0x40;
+
+// Universal Serial Interface initialization
+// Mode: Disabled
+// Clock source: Register & Counter=no clk.
+// USI Counter Overflow Interrupt: Off
+USICR=0x00;
+
+// Analog Comparator initialization
+// Analog Comparator: Off
+// Analog Comparator Input Capture by Timer/Counter 1: Off
+ACSR=0x80;
+
+// I2C Bus initialization
+i2c_init();
+
+// DS1307 Real Time Clock initialization
+// Square wave output on pin SQW/OUT: On
+// Square wave frequency: 1Hz
+rtc_init(0,1,0);
+
+// 1 Wire Bus initialization
+//w1_init();
+
+// Global enable interrupts
+#asm("sei")
+           PORTD=1;
+  //  rtc_set_time(20,44,00); 
+  
+while (1)
+      {
+      // Place your code here 
+       if(e>2){  if(PIND.0==0){j=1;}; } 
+           if(f==1){if(PIND.0==0){j=0; f=0;}}
+           if(f>2){if(f<6){ if(PIND.0==0){f=8;}  if(f%2==1){t1=t2=t3=t4=11;} } } 
+         PORTD=0b11101111;
+          switch(t1) {
+            case 0: {PORTB=0b01111110; break; }
+            case 1: {PORTB=0b01010000;break;   }
+            case 2: {PORTB=0b00111011; break;  }
+            case 3: {PORTB=0b01110011; break;  }
+            case 4: {PORTB=0b01010101; break; }
+            case 5: {PORTB=0b01100111;break;  } 
+            case 6: {PORTB=0b01101111;break;   }
+            case 7: {PORTB=0b01010010; break; }
+            case 8: {PORTB=0b01111111; break;  }
+            case 9: {PORTB=0b01110111;break;  } 
+             case 11: {PORTB=0b00000000;break;  } 
+            };             
+             delay_ms(1);         
+           
+      //   h=sek%2;  
+           
+         if (h==0) {
+  
+
+           
+          PORTD=0b11011111;
+          switch(t2) {
+            case 0: {PORTB=0b01111110; break; }
+            case 1: {PORTB=0b01010000;break;   }
+            case 2: {PORTB=0b00111011; break;  }
+            case 3: {PORTB=0b01110011; break;  }
+            case 4: {PORTB=0b01010101; break; }
+            case 5: {PORTB=0b01100111;break;  } 
+            case 6: {PORTB=0b01101111;break;   }
+            case 7: {PORTB=0b01010010; break; }
+            case 8: {PORTB=0b01111111; break;  }
+            case 9: {PORTB=0b01110111;break;  }  
+              case 11: {PORTB=0b00000000;break;  } 
+            };             
+             delay_ms(1);         
+                          
+               }  else  {
+           PORTD=0b11011111;
+          switch(t2) {
+            case 0: {PORTB=0b11111110; break; }
+            case 1: {PORTB=0b11010000;break;   }
+            case 2: {PORTB=0b10111011; break;  }
+            case 3: {PORTB=0b11110011; break;  }
+            case 4: {PORTB=0b11010101; break; }
+            case 5: {PORTB=0b11100111;break;  } 
+            case 6: {PORTB=0b11101111;break;   }
+            case 7: {PORTB=0b11010010; break; }
+            case 8: {PORTB=0b11111111; break;  }
+            case 9: {PORTB=0b11110111;break;  } 
+              case 11: {PORTB=0b00000000;break;  } 
+            };             
+             delay_ms(1);       
+       };  
+                
+               PORTD=0b11110111;
+          switch(t3) {
+            case 0: {PORTB=0b01111110; break; }
+            case 1: {PORTB=0b01010000;break;   }
+            case 2: {PORTB=0b00111011; break;  }
+            case 3: {PORTB=0b01110011; break;  }
+            case 4: {PORTB=0b01010101; break; }
+            case 5: {PORTB=0b01100111;break;  } 
+            case 6: {PORTB=0b01101111;break;   }
+            case 7: {PORTB=0b01010010; break; }
+            case 8: {PORTB=0b01111111; break;  }
+            case 9: {PORTB=0b01110111;break;  }  
+              case 11: {PORTB=0b00000000;break;  } 
+            };             
+             delay_ms(1); 
+               PORTD=0b11111011;
+              
+          switch(t4) {
+            case 0: {PORTB=0b01111110; break; }
+            case 1: {PORTB=0b01010000;break;   }
+            case 2: {PORTB=0b00111011; break;  }
+            case 3: {PORTB=0b01110011; break;  }
+            case 4: {PORTB=0b01010101; break; }
+            case 5: {PORTB=0b01100111;break;  } 
+            case 6: {PORTB=0b01101111;break;   }
+            case 7: {PORTB=0b01010010; break; }
+            case 8: {PORTB=0b01111111; break;  }
+            case 9: {PORTB=0b01110111;break;  }  
+              case 11: {PORTB=0b00000000;break;  } 
+            };             
+             delay_ms(1);      
+                 
+
+      };            
+}
